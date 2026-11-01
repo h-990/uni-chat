@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Uni-Chat AI Automator</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="header-brand">
+        <div class="brand-icon">🤖</div>
+        <div class="brand-title">
+          <h2>Uni-Chat Automator</h2>
+          <span class="brand-sub">AI Bridge</span>
+        </div>
+      </div>
+      <div id="status-pill" class="status-pill disconnected">Disconnected</div>
+    </header>
+
+    <!-- Error Banner -->
+    <div id="error-banner" class="error-banner" hidden></div>
+
+    <!-- Main Settings Form -->
+    <form id="settings-form" class="settings-form">
+      <!-- AI Service Provider Selection -->
+      <div class="form-group">
+        <label for="adapter-select">Target AI Provider</label>
+        <select id="adapter-select">
+          <option value="deepseek" selected>DeepSeek (chat.deepseek.com)</option>
+        </select>
+      </div>
+
+      <!-- Server URL -->
+      <div class="form-group">
+        <label for="server-url">Uni-Chat Server URL</label>
+        <input type="url" id="server-url" value="https://chat.unichat.workers.dev" required placeholder="https://chat.unichat.workers.dev">
+      </div>
+
+      <!-- AI Credentials -->
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="ai-username">AI Username</label>
+          <input type="text" id="ai-username" value="deepseek" required placeholder="deepseek">
+        </div>
+        <div class="form-group flex-2">
+          <label for="ai-key">AI Password / Key <span class="required-star">*</span></label>
+          <div class="password-wrapper">
+            <input type="password" id="ai-key" required placeholder="Admin-created AI Key">
+            <button type="button" id="toggle-key-visibility" class="btn-eye" title="Toggle visibility">👁</button>
+          </div>
+        </div>
+      </div>
+      <p class="field-hint">Must match the AI account credentials created in the Uni-Chat Admin panel.</p>
+
+      <!-- Routing Settings -->
+      <div class="form-group">
+        <label for="batch-size">Batch Route Threshold (Messages)</label>
+        <div class="batch-selector">
+          <input type="number" id="batch-size" min="5" max="100" value="20">
+          <span class="batch-hint">Untagged messages buffer until reaching threshold. Direct @tags route backlog immediately.</span>
+        </div>
+      </div>
+
+      <!-- Strict Tag Mode Toggle -->
+      <div class="form-group toggle-row">
+        <div class="toggle-info">
+          <label for="strict-tag-mode">Strict Tag Mode</label>
+          <span class="batch-hint">Only route when @deepseek is directly tagged (ignores untagged messages).</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="strict-tag-mode">
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button type="button" id="connect-btn" class="btn-primary">Connect as AI</button>
+        <button type="button" id="open-tab-btn" class="btn-secondary">Open DeepSeek Tab</button>
+      </div>
+    </form>
+
+    <!-- Live Activity Console -->
+    <section class="log-section">
+      <div class="log-header">
+        <span>Activity Log</span>
+        <button id="clear-log-btn" class="btn-text">Clear</button>
+      </div>
+      <div id="log-console" class="log-console">
+        <div class="log-entry info">Extension initialized. Enter AI key and click Connect.</div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

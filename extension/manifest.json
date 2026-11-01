@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "Uni-Chat AI Automator",
+  "version": "3.0.0",
+  "description": "Clean, extensible AI bridge connecting web-based assistants with the Uni-Chat group room.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "scripting",
+    "activeTab",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://chat.deepseek.com/*",
+    "*://*.deepseek.com/*",
+    "https://chatgpt.com/*",
+    "*://*.openai.com/*",
+    "https://claude.ai/*",
+    "*://*.anthropic.com/*",
+    "https://*.workers.dev/*",
+    "http://localhost:*/*",
+    "ws://localhost:*/*",
+    "*://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chat.deepseek.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Uni-Chat AI Automator",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
+}

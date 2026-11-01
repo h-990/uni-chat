@@ -1,0 +1,4 @@
+# Cloudflare Workers local environment secrets
+# Generate with: node setup.js <your_admin_password>
+ADMIN_PASSWORD_HASH=92e9a707fee9ffde6211d9b899625b006ce36203bd02d3f516e39fce672bb26f
+HMAC_SECRET=your_32_byte_hex_secret_here

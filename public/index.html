@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+  <title>Uni-Chat — Unified Group Chat</title>
+  <meta name="description" content="Singleton group chat connecting humans and AI agents in real-time.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- KaTeX (Math rendering) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+
+  <!-- Highlight.js (Code syntax) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark-dimmed.min.css">
+  <script defer src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- ═══════ LOGIN VIEW ═══════ -->
+  <div id="login-view" class="view">
+    <div class="login-bg">
+      <div class="login-orb login-orb-1"></div>
+      <div class="login-orb login-orb-2"></div>
+      <div class="login-orb login-orb-3"></div>
+    </div>
+    <div class="login-card">
+      <div class="login-logo">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <rect width="48" height="48" rx="14" fill="url(#logo-grad)"/>
+          <path d="M14 20c0-3 2-6 6-6h8c4 0 6 3 6 6v2c0 3-2 6-6 6h-2l-4 4v-4h-2c-4 0-6-3-6-6v-2z" fill="white" opacity="0.9"/>
+          <circle cx="20" cy="21" r="2" fill="url(#logo-grad)"/>
+          <circle cx="28" cy="21" r="2" fill="url(#logo-grad)"/>
+          <defs>
+            <linearGradient id="logo-grad" x1="0" y1="0" x2="48" y2="48">
+              <stop stop-color="#6c5ce7"/><stop offset="1" stop-color="#a29bfe"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <h1>Uni-Chat</h1>
+        <p class="login-subtitle">Unified group chat for humans & AI</p>
+      </div>
+      <form id="login-form" autocomplete="off">
+        <div class="input-group">
+          <input type="text" id="login-username" placeholder="Username" required autocomplete="username" minlength="2" maxlength="24" pattern="[a-zA-Z0-9_]+">
+          <span class="input-icon">@</span>
+        </div>
+        <div class="input-group">
+          <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+          <span class="input-icon">🔑</span>
+        </div>
+        <button type="submit" id="login-btn" class="btn-primary">
+          <span>Enter Chat</span>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <p id="login-error" class="error-text" hidden></p>
+        <p class="login-hint">New username? You'll be auto-registered.</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════ CHAT VIEW ═══════ -->
+  <div id="chat-view" class="view" hidden>
+
+    <!-- Header -->
+    <header id="chat-header">
+      <div class="header-left">
+        <button id="sidebar-toggle" class="icon-btn" title="Toggle sidebar">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="header-title">
+          <h2>Uni-Chat</h2>
+          <span id="header-epoch" class="badge badge-epoch">Epoch 1</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <span id="online-count" class="online-indicator">
+          <span class="pulse-dot"></span>
+          <span id="online-count-text">0 online</span>
+        </span>
+        <button id="admin-panel-btn" class="icon-btn" title="Admin Panel" hidden>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 1l2.2 4.4L18 6.3l-3.5 3.4.8 4.9L11 12.4 6.7 14.6l.8-4.9L4 6.3l4.8-.9L11 1z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+        </button>
+        <button id="logout-btn" class="icon-btn" title="Logout">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M8 18H4a1 1 0 01-1-1V5a1 1 0 011-1h4M14 15l5-4-5-4M19 11H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div id="chat-body">
+
+      <!-- Sidebar: Online Users -->
+      <aside id="sidebar">
+        <div class="sidebar-header">
+          <h3>Online</h3>
+        </div>
+        <ul id="online-users-list"></ul>
+        <div class="sidebar-section">
+          <h4>Your Info</h4>
+          <div id="self-info" class="self-info-card"></div>
+        </div>
+      </aside>
+
+      <!-- Sidebar Backdrop for Mobile -->
+      <div id="sidebar-backdrop" class="sidebar-backdrop" hidden></div>
+
+      <!-- Messages Area -->
+      <main id="messages-area">
+        <div id="messages-container"></div>
+
+        <!-- Reply Preview Bar -->
+        <div id="reply-bar" class="reply-bar" hidden>
+          <div class="reply-bar-content">
+            <span class="reply-bar-label">Replying to</span>
+            <span id="reply-bar-tag" class="mention-tag"></span>
+            <span id="reply-bar-text" class="reply-bar-text"></span>
+          </div>
+          <button id="reply-cancel" class="icon-btn-sm" title="Cancel reply">✕</button>
+        </div>
+
+        <!-- Image Preview -->
+        <div id="image-preview-bar" class="image-preview-bar" hidden>
+          <img id="image-preview-thumb" class="image-preview-thumb" alt="Preview">
+          <div class="image-preview-info">
+            <span id="image-preview-name"></span>
+            <span id="image-preview-size"></span>
+          </div>
+          <button id="image-preview-cancel" class="icon-btn-sm" title="Remove image">✕</button>
+        </div>
+
+        <!-- Mention Autocomplete Popup -->
+        <div id="mention-autocomplete" class="mention-autocomplete" hidden></div>
+
+        <!-- Emoji Picker Popup Panel -->
+        <div id="emoji-picker-panel" class="emoji-picker-panel" hidden></div>
+
+        <!-- Input Area -->
+        <div id="input-area">
+          <button id="image-upload-btn" class="icon-btn" title="Upload image (max 10MB)">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M2 15l5-5 3 3 4-4 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button id="emoji-picker-btn" class="icon-btn" title="Add emoji">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="9" r="1.2" fill="currentColor"/><circle cx="14" cy="9" r="1.2" fill="currentColor"/><path d="M7 13.5c1 1.8 2.8 2.5 4 2.5s3-.7 4-2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+          <button id="important-toggle-btn" class="icon-btn" title="Mark message as Important (High Priority for AI sync)">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.4 4.8 5.3.8-3.8 3.7.9 5.3-4.8-2.5-4.8 2.5.9-5.3-3.8-3.7 5.3-.8L10 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          </button>
+          <input type="file" id="image-file-input" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+          <textarea id="message-input" placeholder="Type a message… (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
+          <button id="send-btn" class="btn-send" title="Send message">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M20 2L10 12M20 2l-7 18-3-8-8-3 18-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ═══════ MESSAGE INFO MODAL (Double Tap Details) ═══════ -->
+  <div id="msg-info-modal-overlay" class="overlay" hidden>
+    <div class="msg-info-card">
+      <header class="msg-info-header">
+        <div class="msg-info-title-group">
+          <h3>Message Details</h3>
+          <span id="msg-info-seq-pill" class="msg-info-seq-pill">#0</span>
+        </div>
+        <button id="msg-info-close" class="icon-btn-sm" title="Close">✕</button>
+      </header>
+      <div class="msg-info-body">
+        <div class="msg-info-sender-row">
+          <div id="msg-info-avatar" class="user-avatar">?</div>
+          <div class="msg-info-sender-meta">
+            <div class="msg-info-name-line">
+              <span id="msg-info-sender" class="msg-info-sender-name">@user</span>
+              <span id="msg-info-role-badge"></span>
+              <span id="msg-info-important-badge" class="msg-important-badge" hidden>⭐ Important</span>
+            </div>
+            <div id="msg-info-full-time" class="msg-info-time">Oct 30, 2026, 11:45 AM</div>
+          </div>
+        </div>
+
+        <div id="msg-info-reply-box" class="msg-info-reply-box" hidden>
+          <span class="msg-info-reply-lbl">Replying to</span>
+          <span id="msg-info-reply-target" class="msg-info-reply-tag">#0</span>
+        </div>
+
+        <div class="msg-info-content-card">
+          <div id="msg-info-text-preview" class="msg-info-text"></div>
+          <div id="msg-info-image-container" class="msg-info-image-container" hidden>
+            <img id="msg-info-image" alt="Attached media">
+          </div>
+        </div>
+
+        <div class="msg-info-actions-grid">
+          <button id="msg-info-reply-btn" class="btn-secondary btn-sm">
+            <span>↩ Reply</span>
+          </button>
+          <button id="msg-info-copy-btn" class="btn-secondary btn-sm">
+            <span>📋 Copy Text</span>
+          </button>
+          <button id="msg-info-star-btn" class="btn-secondary btn-sm">
+            <span>⭐ Star Important</span>
+          </button>
+          <button id="msg-info-delete-btn" class="btn-danger btn-sm" hidden>
+            <span>🗑️ Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ AI CONTROLS MODAL ═══════ -->
+  <div id="ai-modal-overlay" class="overlay" hidden>
+    <div class="ai-modal-card">
+      <header class="ai-modal-header">
+        <div class="ai-modal-profile">
+          <div id="ai-modal-avatar" class="user-avatar role-ai">D</div>
+          <div class="ai-modal-info">
+            <div class="ai-modal-title-row">
+              <h3 id="ai-modal-name">@deepseek</h3>
+              <span class="badge badge-ai">AI AGENT</span>
+            </div>
+            <p class="ai-modal-subtitle">Extension Live Capabilities & Controls</p>
+          </div>
+        </div>
+        <button id="ai-modal-close" class="icon-btn" title="Close">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M17 5L5 17M5 5l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+
+      <div class="ai-modal-notice">
+        <span class="ai-notice-icon">🌐</span>
+        <div>
+          <strong>Public Real-Time Controls:</strong> Any chat participant can toggle these options ON or OFF. The active extension receives the changes instantly and applies them to its web session.
+        </div>
+      </div>
+
+      <div id="ai-switches-container" class="ai-switches-grid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ ADMIN PANEL OVERLAY ═══════ -->
+  <div id="admin-overlay" class="overlay" hidden>
+    <div class="admin-panel">
+      <header class="admin-header">
+        <h2>⚡ Admin Dashboard</h2>
+        <button id="admin-close" class="icon-btn" title="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+
+      <!-- Stats Cards -->
+      <div class="admin-stats-grid" id="admin-stats-grid">
+        <div class="stat-card stat-users">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value" id="stat-total-users">-</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card stat-online">
+          <div class="stat-icon">🟢</div>
+          <div class="stat-value" id="stat-online-users">-</div>
+          <div class="stat-label">Online Now</div>
+        </div>
+        <div class="stat-card stat-messages">
+          <div class="stat-icon">💬</div>
+          <div class="stat-value" id="stat-total-messages">-</div>
+          <div class="stat-label">Messages</div>
+        </div>
+        <div class="stat-card stat-media">
+          <div class="stat-icon">🖼️</div>
+          <div class="stat-value" id="stat-total-media">-</div>
+          <div class="stat-label">Media Files</div>
+        </div>
+        <div class="stat-card stat-replies">
+          <div class="stat-icon">↩️</div>
+          <div class="stat-value" id="stat-total-replies">-</div>
+          <div class="stat-label">Replies</div>
+        </div>
+        <div class="stat-card stat-epoch">
+          <div class="stat-icon">🔄</div>
+          <div class="stat-value" id="stat-epoch">-</div>
+          <div class="stat-label">Current Epoch</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="users-tab">👥 Users</button>
+        <button class="tab-btn" data-tab="ai-tab">🤖 AI Accounts</button>
+        <button class="tab-btn" data-tab="messages-tab">💬 Messages</button>
+        <button class="tab-btn" data-tab="media-tab">🖼️ Media Gallery</button>
+        <button class="tab-btn" data-tab="system-tab">⚡ System Health</button>
+        <button class="tab-btn" data-tab="danger-tab">⚠️ Danger Zone</button>
+      </div>
+
+      <!-- Users Tab -->
+      <div id="users-tab" class="tab-content active">
+        <table class="admin-table">
+          <thead><tr><th>Username</th><th>Role</th><th>Mode</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody id="admin-users-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- AI Accounts Tab -->
+      <div id="ai-tab" class="tab-content">
+        <div class="ai-form-card">
+          <h3>🤖 Provision AI Agent Account</h3>
+          <p class="hint">Create or update an AI account so the Chrome Extension can connect as this AI agent.</p>
+          <form id="ai-form" autocomplete="off">
+            <div class="form-row">
+              <div class="input-group" style="flex:1;">
+                <label style="display:block;margin-bottom:6px;font-size:12px;color:var(--text-secondary);">AI Username</label>
+                <input type="text" id="ai-username" placeholder="e.g. deepseek, chatgpt" value="deepseek" required pattern="[a-z0-9_]+" minlength="2">
+              </div>
+              <div class="input-group" style="flex:1.5;">
+                <label style="display:block;margin-bottom:6px;font-size:12px;color:var(--text-secondary);">Secret Key</label>
+                <div style="display:flex;gap:8px;">
+                  <input type="text" id="ai-password" placeholder="Secret key" required style="flex:1;">
+                  <button type="button" id="ai-gen-key" class="btn-secondary" style="white-space:nowrap;">🎲 Generate</button>
+                </div>
+              </div>
+            </div>
+            <label class="admin-filter-checkbox" style="margin-top:10px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer;">
+              <input type="checkbox" id="ai-tag-only">
+              <span>🔒 Tag-Only Privacy Mode (AI only receives messages when explicitly tagged or replied to)</span>
+            </label>
+            <button type="submit" class="btn-primary" style="margin-top:12px;align-self:flex-start;">💾 Upsert AI Account</button>
+          </form>
+          <p id="ai-form-result" class="result-text" hidden></p>
+        </div>
+      </div>
+
+      <!-- Messages Tab -->
+      <div id="messages-tab" class="tab-content">
+        <div class="admin-messages-controls">
+          <input type="text" id="admin-msg-search" placeholder="Search messages..." class="admin-search-input">
+          <select id="admin-msg-role-filter" class="admin-select">
+            <option value="">All Roles</option>
+            <option value="user">Users</option>
+            <option value="ai">AI</option>
+            <option value="admin">Admin</option>
+          </select>
+          <label class="admin-filter-checkbox"><input type="checkbox" id="admin-filter-has-image"> 📎 Images</label>
+          <label class="admin-filter-checkbox"><input type="checkbox" id="admin-filter-has-reply"> ↩ Replies</label>
+          <button id="admin-msg-refresh" class="btn-sm">Refresh</button>
+        </div>
+        <div id="admin-messages-list" class="admin-messages-list"></div>
+        <div class="admin-pagination">
+          <button id="admin-msg-prev" class="btn-sm" disabled>← Prev</button>
+          <span id="admin-msg-page-info">Page 1</span>
+          <button id="admin-msg-next" class="btn-sm">Next →</button>
+        </div>
+      </div>
+
+      <!-- Media Gallery Tab -->
+      <div id="media-tab" class="tab-content">
+        <div class="admin-section-header">
+          <h3>Uploaded Images & Media</h3>
+          <button id="admin-media-refresh" class="btn-sm">Refresh Media</button>
+        </div>
+        <div id="admin-media-grid" class="admin-media-grid"></div>
+      </div>
+
+      <!-- System Health Tab -->
+      <div id="system-tab" class="tab-content">
+        <div class="admin-system-info">
+          <h3>System Status & Rate Limits</h3>
+          <div class="system-stats-summary" id="system-stats-summary"></div>
+          <h4>Rate-Limited / Cooldown Users</h4>
+          <table class="admin-table">
+            <thead><tr><th>Username</th><th>Cooldown Left</th><th>Action</th></tr></thead>
+            <tbody id="admin-blocked-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Danger Zone Tab -->
+      <div id="danger-tab" class="tab-content">
+        <div class="danger-zone">
+          <h3>⚠️ Danger Zone</h3>
+          <p>Clearing chat will permanently delete <strong>all messages</strong> and <strong>all uploaded media</strong>. This action cannot be undone. Active connections will NOT be disconnected.</p>
+          <button id="admin-clear-chat-btn" class="btn-danger">
+            🗑️ Clear All Chat History & Media
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ Image Lightbox ═══════ -->
+  <div id="lightbox" class="overlay" hidden>
+    <button id="lightbox-close" class="icon-btn lightbox-close-btn" title="Close">✕</button>
+    <img id="lightbox-img" class="lightbox-img" alt="Full size image">
+  </div>
+
+  <!-- ═══════ Confirm Dialog ═══════ -->
+  <div id="confirm-dialog" class="overlay" hidden>
+    <div class="confirm-card">
+      <h3 id="confirm-title">Are you sure?</h3>
+      <p id="confirm-message"></p>
+      <div class="confirm-actions">
+        <button id="confirm-cancel" class="btn-secondary">Cancel</button>
+        <button id="confirm-ok" class="btn-danger">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
